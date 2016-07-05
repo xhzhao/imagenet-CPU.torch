@@ -84,7 +84,7 @@ function train()
       }
    end
    batchNumber = 0
-   cutorch.synchronize()
+ --  cutorch.synchronize()
 
    -- set the dropouts to training mode
    model:training()
@@ -106,7 +106,7 @@ function train()
    end
 
    donkeys:synchronize()
-   cutorch.synchronize()
+--   cutorch.synchronize()
 
    top1_epoch = top1_epoch * 100 / (opt.batchSize * opt.epochSize)
    loss_epoch = loss_epoch / opt.epochSize
@@ -132,8 +132,8 @@ function train()
 end -- of train()
 -------------------------------------------------------------------------------------------
 -- GPU inputs (preallocate)
-local inputs = torch.CudaTensor()
-local labels = torch.CudaTensor()
+local inputs = torch.Tensor()
+local labels = torch.Tensor()
 
 local timer = torch.Timer()
 local dataTimer = torch.Timer()
@@ -142,7 +142,7 @@ local parameters, gradParameters = model:getParameters()
 
 -- 4. trainBatch - Used by train() to train a single batch after the data is loaded.
 function trainBatch(inputsCPU, labelsCPU)
-   cutorch.synchronize()
+--   cutorch.synchronize()
    collectgarbage()
    local dataLoadingTime = dataTimer:time().real
    timer:reset()
@@ -150,6 +150,8 @@ function trainBatch(inputsCPU, labelsCPU)
    -- transfer over to GPU
    inputs:resize(inputsCPU:size()):copy(inputsCPU)
    labels:resize(labelsCPU:size()):copy(labelsCPU)
+   --inputs:resize(inputsCPU:size())
+   --labels:resize(labelsCPU:size())
 
    local err, outputs
    feval = function(x)
@@ -162,13 +164,14 @@ function trainBatch(inputsCPU, labelsCPU)
    end
    optim.sgd(feval, parameters, optimState)
 
+
    -- DataParallelTable's syncParameters
    if model.needsSync then
       model:syncParameters()
    end
    
 
-   cutorch.synchronize()
+--   cutorch.synchronize()
    batchNumber = batchNumber + 1
    loss_epoch = loss_epoch + err
    -- top-1 error

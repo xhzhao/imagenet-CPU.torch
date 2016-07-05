@@ -7,7 +7,7 @@
 --  of patent rights can be found in the PATENTS file in the same directory.
 --
 require 'nn'
-require 'cunn'
+--require 'cunn'
 require 'optim'
 
 --[[
@@ -47,6 +47,6 @@ print(criterion)
 print('==> Converting model to CUDA')
 -- model is converted to CUDA in the init script itself
 -- model = model:cuda()
-criterion:cuda()
+--criterion:cuda()
 
 collectgarbage()

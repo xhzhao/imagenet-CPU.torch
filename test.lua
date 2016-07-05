@@ -17,7 +17,7 @@ function test()
    print("==> online epoch # " .. epoch)
 
    batchNumber = 0
-   cutorch.synchronize()
+--   cutorch.synchronize()
    timer:reset()
 
    -- set the dropouts to evaluate mode
@@ -40,7 +40,7 @@ function test()
    end
 
    donkeys:synchronize()
-   cutorch.synchronize()
+--   cutorch.synchronize()
 
    top1_center = top1_center * 100 / nTest
    loss = loss / (nTest/opt.batchSize) -- because loss is calculated per batch
@@ -58,8 +58,8 @@ function test()
 
 end -- of test()
 -----------------------------------------------------------------------------
-local inputs = torch.CudaTensor()
-local labels = torch.CudaTensor()
+local inputs = torch.Tensor()
+local labels = torch.Tensor()
 
 function testBatch(inputsCPU, labelsCPU)
    batchNumber = batchNumber + opt.batchSize
@@ -69,7 +69,7 @@ function testBatch(inputsCPU, labelsCPU)
 
    local outputs = model:forward(inputs)
    local err = criterion:forward(outputs, labels)
-   cutorch.synchronize()
+--   cutorch.synchronize()
    local pred = outputs:float()
 
    loss = loss + err

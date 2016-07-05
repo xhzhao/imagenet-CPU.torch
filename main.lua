@@ -7,11 +7,15 @@
 --  of patent rights can be found in the PATENTS file in the same directory.
 --
 require 'torch'
-require 'cutorch'
+--require 'cutorch'
 require 'paths'
 require 'xlua'
 require 'optim'
 require 'nn'
+require 'sys'
+
+--sys.compare = true
+--sys.timerEnable = true
 
 torch.setdefaulttensortype('torch.FloatTensor')
 
@@ -28,7 +32,7 @@ opt.imageCrop = model.imageCrop or opt.imageCrop
 
 print(opt)
 
-cutorch.setDevice(opt.GPU) -- by default, use GPU 1
+--cutorch.setDevice(opt.GPU) -- by default, use GPU 1
 torch.manualSeed(opt.manualSeed)
 
 print('Saving everything to: ' .. opt.save)
