@@ -1,15 +1,12 @@
-##Training an Object Classifier in Torch-7 on multiple GPUs over [ImageNet](http://image-net.org/download-images)
+##Training an Object Classifier in Torch-7 on CPU over [ImageNet](http://image-net.org/download-images)
 
 In this concise example (1200 lines including a general-purpose and highly scalable data loader for images), we showcase:
 - train [AlexNet](http://papers.nips.cc/paper/4824-imagenet-classification-with-deep-convolutional-neural-networks) or [Overfeat](http://arxiv.org/abs/1312.6229), VGG and Googlenet on ImageNet
-- showcase multiple backends: CuDNN, CuNN
-- use nn.DataParallelTable to speedup training over multiple GPUs
 - multithreaded data-loading from disk (showcases sending tensors from one thread to another without serialization)
 
 ### Requirements
-- [Install torch on a machine with CUDA GPU](http://torch.ch/docs/getting-started.html#_)
-- If on Mac OSX, run `brew install coreutils findutils` to get GNU versions of `wc`, `find`, and `cut`
-- Download Imagenet-12 dataset from http://image-net.org/download-images . It has 1000 classes and 1.2 million images.
+- Intel® Math Kernel Library(Intel®MKL), 2017 Beta version
+- Intel Torch
 
 ### Data processing
 **The images dont need to be preprocessed or packaged in any database.** It is preferred to keep the dataset on an [SSD](http://en.wikipedia.org/wiki/Solid-state_drive) but we have used the data loader comfortably over NFS without loss in speed.
@@ -44,24 +41,14 @@ th main.lua --help
 ```
 
 To run the training, simply run main.lua
-By default, the script runs 1-GPU AlexNet with the CuDNN backend and 2 data-loader threads.
+By default, the script runs 1-CPU AlexNet with the NN backend and 2 data-loader threads.
 ```bash
 th main.lua -data [imagenet-folder with train and val folders]
 ```
 
-For 2-GPU model parallel AlexNet + CuDNN, you can run it this way:
-```bash
-th main.lua -data [imagenet-folder with train and val folders] -nGPU 2 -backend cudnn -netType alexnet
-```
-Similarly, you can switch the backends to 'cunn' to use a different set of CUDA kernels.
-
 You can also alternatively train OverFeat using this following command:
 ```bash
 th main.lua -data [imagenet-folder with train and val folders] -netType overfeat
-
-# multi-GPU overfeat (let's say 2-GPU)
-th main.lua -data [imagenet-folder with train and val folders] -netType overfeat -nGPU 2
-```
 
 The training script prints the current Top-1 and Top-5 error as well as the objective loss at every mini-batch.
 We hard-coded a learning rate schedule so that AlexNet converges to an error of 42.5% at the end of 53 epochs.
