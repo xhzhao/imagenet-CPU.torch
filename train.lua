@@ -65,7 +65,9 @@ end
 -- 2. Create loggers.
 trainLogger = optim.Logger(paths.concat(opt.save, 'train.log'))
 local batchNumber
-local top1_epoch, loss_epoch
+local top1_epoch, loss_epoch,top5_epoch
+local showErrorRateInteval
+
 
 -- 3. train - this function handles the high-level training loop,
 --            i.e. load data, train model, save model and state to disk
@@ -91,7 +93,9 @@ function train()
 
    local tm = torch.Timer()
    top1_epoch = 0
+   top5_epoch = 0
    loss_epoch = 0
+   showErrorRateInteval = 100
    for i=1,opt.epochSize do
       -- queue jobs to data-workers
       donkeys:addjob(
@@ -103,11 +107,14 @@ function train()
          -- the end callback (runs in the main thread)
          trainBatch
       )
+    if (i%1000) == 0 then
+       test()
+    end
    end
 
    donkeys:synchronize()
 --   cutorch.synchronize()
-
+--[[
    top1_epoch = top1_epoch * 100 / (opt.batchSize * opt.epochSize)
    loss_epoch = loss_epoch / opt.epochSize
 
@@ -120,7 +127,7 @@ function train()
                           .. 'accuracy(%%):\t top-1 %.2f\t',
                        epoch, tm:time().real, loss_epoch, top1_epoch))
    print('\n')
-
+]]--
    -- save model
    collectgarbage()
 
@@ -162,6 +169,8 @@ function trainBatch(inputsCPU, labelsCPU)
       model:backward(inputs, gradOutputs)
       return err, gradParameters
    end
+   --adamState = {learningRate = 0.001}
+   --optim.adam(feval, parameters, adamState)
    optim.sgd(feval, parameters, optimState)
 
 
@@ -186,10 +195,44 @@ function trainBatch(inputsCPU, labelsCPU)
       end
       top1 = top1 * 100 / opt.batchSize;
    end
+
+   local top5 = 0
+   do
+      local _,prediction_sorted = outputs:float():sort(2, true) -- descending
+      for i=1,opt.batchSize do
+        if (prediction_sorted[i][1] == labelsCPU[i] or prediction_sorted[i][2] == labelsCPU[i] or prediction_sorted[i][3] == labelsCPU[i] or prediction_sorted[i][4] == labelsCPU[i] or prediction_sorted[i][5] == labelsCPU[i] ) then
+            top5_epoch = top5_epoch + 1;
+            top5 = top5 + 1
+        end
+      end
+      top5 = top5 * 100 / opt.batchSize;
+   end
+
+
    -- Calculate top-1 error, and print information
-   print(('Epoch: [%d][%d/%d]\tTime %.3f Err %.4f Top1-%%: %.2f LR %.0e DataLoadingTime %.3f'):format(
-          epoch, batchNumber, opt.epochSize, timer:time().real, err, top1,
+   print(('Epoch: [%d][%d/%d]\tTime %.3f Err %.4f Top1-%%: %.2f Top5-%%: %.2f  LR %.0e DataLoadingTime %.3f'):format(
+          epoch, batchNumber, opt.epochSize, timer:time().real, err, top1,top5,
           optimState.learningRate, dataLoadingTime))
 
    dataTimer:reset()
+end
+
+
+function showErrorRate()
+
+   top1_epoch = top1_epoch * 100 / (opt.batchSize * showErrorRateInteval)
+   top5_epoch = top5_epoch * 100 / (opt.batchSize * showErrorRateInteval)
+   loss_epoch = loss_epoch / showErrorRateInteval
+
+   trainLogger:add{
+      ['% top1 accuracy (train set)'] = top1_epoch,
+      ['% top5 accuracy (train set)'] = top5_epoch,
+      ['avg loss (train set)'] = loss_epoch
+   }   
+   print(string.format('Epoch: [%d][TRAINING SUMMARY] Total Time(s): %.2f\t'
+                          .. 'average loss (per batch): %.2f \t '
+                          .. 'accuracy(%%):\t top-1 %.2f\t top-5 %.2f \t', 
+                       epoch, timer:time().real, loss_epoch, top1_epoch, top5_epoch))
+   print('\n')
+    
 end

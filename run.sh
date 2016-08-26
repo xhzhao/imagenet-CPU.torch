@@ -3,4 +3,4 @@ source /home/xiaohui/.bashrc
 
 
 
-th main.lua -data  /sdata/imagenet/ilsvrc2012/
+KMP_AFFINITY=scatter,granularity=fine,0,1  OMP_NUM_THREADS=44 th main.lua -data  /data/imagenet/ilsvrc2012/
