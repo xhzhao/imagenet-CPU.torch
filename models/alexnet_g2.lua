@@ -9,7 +9,7 @@ function createModel(nGPU)
    local SBatchNorm = nn.SpatialBatchNormalizationMKLDNN
    local LRN = nn.LRNMKLDNN
 
-   features:add(SpatialConvolution(3,96,11,11,4,4,2,2))       -- 224 -> 55
+   features:add(SpatialConvolution(3,96,11,11,4,4))       -- 224 -> 55
    features:add(ReLU(true))
    features:add(LRN(5,0.0001,0.75))
    features:add(SpatialMaxPooling(3,3,2,2))                   -- 55 ->  27
@@ -28,13 +28,13 @@ function createModel(nGPU)
 
    local classifier = nn.Sequential()
    classifier:add(nn.View(256*6*6))
-   classifier:add(nn.Linear(256*6*6, 4096))
+   classifier:add(nn.Linear(256*6*6, 4096):reset(0.005))
    classifier:add(nn.ReLU())
    classifier:add(nn.Dropout(0.5))
-   classifier:add(nn.Linear(4096, 4096))
+   classifier:add(nn.Linear(4096, 4096):reset(0.005))
    classifier:add(nn.ReLU())
    classifier:add(nn.Dropout(0.5))
-   classifier:add(nn.Linear(4096, nClasses))
+   classifier:add(nn.Linear(4096, nClasses):reset(0.01))
    classifier:add(nn.LogSoftMax())
 
    features:get(1).gradInput = nil
@@ -42,7 +42,7 @@ function createModel(nGPU)
 
    local model = nn.Sequential():add(features):add(classifier)
    model.imageSize = 256
-   model.imageCrop = 224
+   model.imageCrop = 227
 
    return model
 end
