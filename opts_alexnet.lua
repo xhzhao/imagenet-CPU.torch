@@ -17,7 +17,7 @@ function M.parse(arg)
     ------------ General options --------------------
 
     cmd:option('-cache', './imagenet/checkpoint/', 'subdirectory in which to save/log experiments')
-    cmd:option('-data', '/data/imagenet/ilsvrc2012/', 'Home of ImageNet dataset')
+    cmd:option('-data', '/mnt/root/dataset-imagenet/', 'Home of ImageNet dataset')
     cmd:option('-manualSeed',         2, 'Manually set RNG seed')
     cmd:option('-GPU',                1, 'Default preferred GPU')
     cmd:option('-nGPU',               1, 'Number of GPUs to use by default')
@@ -37,7 +37,7 @@ function M.parse(arg)
     cmd:option('-momentum',        0.9,  'momentum')
     cmd:option('-weightDecay',     5e-4, 'weight decay')
     ---------- Model options ----------------------------------
-    cmd:option('-netType',     'alexnet_mkldnn', 'Options: alexnet | overfeat | alexnetowtbn | vgg | googlenet')
+    cmd:option('-netType',     'alexnet_g2', 'Options: alexnet | overfeat | alexnetowtbn | vgg | googlenet')
     --cmd:option('-netType',     'alexnetowtbn', 'Options: alexnet | overfeat | alexnetowtbn | vgg | googlenet')
     --cmd:option('-netType',     'vgg_mkldnn', 'Options: alexnet | overfeat | alexnetowtbn | vgg | googlenet')
     --cmd:option('-netType',     'vgg', 'Options: alexnet | overfeat | alexnetowtbn | vgg | googlenet')
