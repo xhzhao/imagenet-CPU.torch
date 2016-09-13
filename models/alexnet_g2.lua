@@ -28,13 +28,13 @@ function createModel(nGPU)
 
    local classifier = nn.Sequential()
    classifier:add(nn.View(256*6*6))
-   classifier:add(nn.Linear(256*6*6, 4096):reset(0.005))
+   classifier:add(nn.Linear(256*6*6, 4096))
    classifier:add(nn.ReLU())
    classifier:add(nn.Dropout(0.5))
-   classifier:add(nn.Linear(4096, 4096):reset(0.005))
+   classifier:add(nn.Linear(4096, 4096))
    classifier:add(nn.ReLU())
    classifier:add(nn.Dropout(0.5))
-   classifier:add(nn.Linear(4096, nClasses):reset(0.01))
+   classifier:add(nn.Linear(4096, nClasses))
    classifier:add(nn.LogSoftMax())
 
    features:get(1).gradInput = nil
