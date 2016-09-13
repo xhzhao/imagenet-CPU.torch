@@ -9,7 +9,7 @@
 testLogger = optim.Logger(paths.concat(opt.save, 'test.log'))
 
 local batchNumber
-local top1_center, loss
+local top1_center, top5_center, loss
 local timer = torch.Timer()
 
 function test()
@@ -24,6 +24,7 @@ function test()
    model:evaluate()
 
    top1_center = 0
+   top5_center = 0
    loss = 0
    for i=1,nTest/opt.batchSize do -- nTest is set in 1_data.lua
       local indexStart = (i-1) * opt.batchSize + 1
@@ -43,9 +44,11 @@ function test()
 --   cutorch.synchronize()
 
    top1_center = top1_center * 100 / nTest
+   top5_center = top5_center * 100 / nTest
    loss = loss / (nTest/opt.batchSize) -- because loss is calculated per batch
    testLogger:add{
       ['% top1 accuracy (test set) (center crop)'] = top1_center,
+      ['% top5 accuracy (test set) (center crop)'] = top5_center,
       ['avg loss (test set)'] = loss
    }
    print(string.format('Epoch: [%d][TESTING SUMMARY] Total Time(s): %.2f \t'
@@ -78,6 +81,7 @@ function testBatch(inputsCPU, labelsCPU)
    for i=1,pred:size(1) do
       local g = labelsCPU[i]
       if pred_sorted[i][1] == g then top1_center = top1_center + 1 end
+      if pred_sorted[i][1] == g or pred_sorted[i][2] == g or pred_sorted[i][3] == g or pred_sorted[i][4] == g or pred_sorted[i][5] == g  then top5_center = top5_center + 1 end
    end
    if batchNumber % 1024 == 0 then
       print(('Epoch: Testing [%d][%d/%d]'):format(epoch, batchNumber, nTest))
