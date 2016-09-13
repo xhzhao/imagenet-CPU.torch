@@ -17,6 +17,37 @@ require 'sys'
 --sys.compare = true
 --sys.timerEnable = true
 
+
+--sys.compare = true
+sys.timerEnable = true
+
+sys.totalTime = 0
+sys.convTime_forward = 0
+sys.convTime_backward = 0
+sys.maxpoolingTime_forward = 0
+sys.maxpoolingTime_backward = 0
+sys.avgpoolingTime_forward = 0
+sys.avgpoolingTime_backward = 0
+sys.reluTime_forward = 0
+sys.reluTime_backward = 0
+sys.lrnTime_forward = 0
+sys.lrnTime_backward = 0
+sys.sbnTime = 0
+sys.sbnTime_forward = 0
+sys.sbnTime_backward = 0
+sys.linearTime_forward = 0
+sys.linearTime_backward = 0
+sys.dropTime_forward = 0
+sys.dropTime_backward = 0
+sys.concatTableTime_forward = 0
+sys.concatTableTime_backward = 0
+sys.concatTime_forward = 0
+sys.concatTime_backward = 0
+sys.thresholdTime_forward = 0
+sys.thresholdTime_backward = 0
+
+
+
 torch.setdefaulttensortype('torch.FloatTensor')
 
 local opts = paths.dofile('opts_alexnet.lua')
