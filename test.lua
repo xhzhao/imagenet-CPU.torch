@@ -53,7 +53,7 @@ function test()
    }
    print(string.format('Epoch: [%d][TESTING SUMMARY] Total Time(s): %.2f \t'
                           .. 'average loss (per batch): %.2f \t '
-                          .. 'accuracy [Center](%%):\t top-1 %.2f\t ',
+                          .. 'accuracy [Center](%%):\t top-1 %.2f\t '
                           .. 'accuracy [Center](%%):\t top-5 %.2f\t ',
                        epoch, timer:time().real, loss, top1_center, top5_center))
 
