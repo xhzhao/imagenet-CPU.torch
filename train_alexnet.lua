@@ -95,6 +95,22 @@ function train()
 
    -- set the dropouts to training mode
    model:training()
+   local baseLearningRate = optimState.learningRate
+   local baseWeightDecay = optimState.weightDecay
+   local learningRates, weightDecays = model:getOptimConfig(baseLearningRate, baseWeightDecay)
+--[[
+   print("start to print learningRates,weightDecays")
+   print(#learningRates)
+   print(#weightDecays)
+   for i=1,100 do
+      print(learningRates[i])
+   end
+]]--
+   --print( weightDecays)
+   optimState['learningRates'] = learningRates
+   optimState['weightDecays'] = weightDecays
+   print(optimState)
+
 
    local tm = torch.Timer()
    top1_epoch = 0
@@ -245,6 +261,8 @@ function trainBatch(inputsCPU, labelsCPU)
    end
 
    model:zeroGradParameters()
+
+
    optim.sgd(chunkedFeval, parameters, optimState)
 
    -- DataParallelTable's syncParameters
