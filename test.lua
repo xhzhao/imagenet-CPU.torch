@@ -8,8 +8,15 @@
 --
 testLogger = optim.Logger(paths.concat(opt.save, 'test.log'))
 
+local testDataIterator = function()
+   testLoader:reset()
+   return function() return testLoader:get_batch(false) end
+end
+
 local batchNumber
 local top1_center, top5_center, loss
+local testConf = opt.conf and optim.ConfusionMatrix(classes) or nil
+local testBatchSize = math.floor(opt.batchSize / opt.batchChunks)
 local timer = torch.Timer()
 
 function test()
@@ -17,7 +24,7 @@ function test()
    print("==> online epoch # " .. epoch)
 
    batchNumber = 0
---   cutorch.synchronize()
+   cutorch.synchronize()
    timer:reset()
 
    -- set the dropouts to evaluate mode
@@ -26,9 +33,10 @@ function test()
    top1_center = 0
    top5_center = 0
    loss = 0
-   for i=1,nTest/opt.batchSize do -- nTest is set in 1_data.lua
-      local indexStart = (i-1) * opt.batchSize + 1
-      local indexEnd = (indexStart + opt.batchSize - 1)
+   if testConf then testConf:zero() end
+   for i=1,nTest/testBatchSize do -- nTest is set in 1_data.lua
+      local indexStart = (i-1) * testBatchSize + 1
+      local indexEnd = (indexStart + testBatchSize - 1)
       donkeys:addjob(
          -- work to be done by donkey thread
          function()
@@ -41,14 +49,13 @@ function test()
    end
 
    donkeys:synchronize()
---   cutorch.synchronize()
+   cutorch.synchronize()
 
    top1_center = top1_center * 100 / nTest
    top5_center = top5_center * 100 / nTest
-   loss = loss / (nTest/opt.batchSize) -- because loss is calculated per batch
+   loss = loss / (nTest/testBatchSize) -- because loss is calculated per batch
    testLogger:add{
       ['% top1 accuracy (test set) (center crop)'] = top1_center,
-      ['% top5 accuracy (test set) (center crop)'] = top5_center,
       ['avg loss (test set)'] = loss
    }
    print(string.format('Epoch: [%d][TESTING SUMMARY] Total Time(s): %.2f \t'
@@ -57,23 +64,40 @@ function test()
                           .. 'accuracy [Center](%%):\t top-5 %.2f\t ',
                        epoch, timer:time().real, loss, top1_center, top5_center))
 
+   if opt.conf then
+      io.write('==> Saving training confusion matrix...'); io.flush()
+      if opt.verboseConf then
+         local confFile = io.open(paths.concat(opt.save, 'confusion.txt'), 'w')
+         confFile:write('-- Training --------------------------------------------------------------------\n')
+         confFile:write(trainConf:__tostring__())
+         confFile:write('\n\n')
+         confFile:write('\n-- Testing ---------------------------------------------------------------------\n')
+         confFile:write(testConf:__tostring__())
+         confFile:write('\n\n')
+         confFile:close()
+      end
+      torch.save(paths.concat(opt.save, 'confusion.t7'), {trainConf, testConf})
+      print(' Done!')
+   end
+
    print('\n')
 
 
 end -- of test()
 -----------------------------------------------------------------------------
-local inputs = torch.Tensor()
-local labels = torch.Tensor()
+local inputs = torch.CudaTensor()
+local labels = torch.CudaTensor()
+local print_every = 16 * opt.batchChunks
 
 function testBatch(inputsCPU, labelsCPU)
-   batchNumber = batchNumber + opt.batchSize
+   batchNumber = batchNumber + testBatchSize
 
    inputs:resize(inputsCPU:size()):copy(inputsCPU)
    labels:resize(labelsCPU:size()):copy(labelsCPU)
 
-   local outputs = model:forward(inputs)
+   local outputs = model:forward(inputs):sub(1, -1, 1, nClasses)
    local err = criterion:forward(outputs, labels)
---   cutorch.synchronize()
+   cutorch.synchronize()
    local pred = outputs:float()
 
    loss = loss + err
@@ -84,7 +108,9 @@ function testBatch(inputsCPU, labelsCPU)
       if pred_sorted[i][1] == g then top1_center = top1_center + 1 end
       if pred_sorted[i][1] == g or pred_sorted[i][2] == g or pred_sorted[i][3] == g or pred_sorted[i][4] == g or pred_sorted[i][5] == g  then top5_center = top5_center + 1 end
    end
-   if batchNumber % 1024 == 0 then
+   if batchNumber % (testBatchSize * print_every) == 0 then
       print(('Epoch: Testing [%d][%d/%d]'):format(epoch, batchNumber, nTest))
    end
+
+   if testConf then testConf:batchAdd(outputs:float(), labelsCPU) end
 end

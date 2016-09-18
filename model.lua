@@ -7,7 +7,7 @@
 --  of patent rights can be found in the PATENTS file in the same directory.
 --
 require 'nn'
---require 'cunn'
+require 'cunn'
 require 'optim'
 
 --[[
@@ -23,15 +23,10 @@ if opt.retrain ~= 'none' then
    print('Loading model from file: ' .. opt.retrain);
    model = loadDataParallel(opt.retrain, opt.nGPU) -- defined in util.lua
 else
-   paths.dofile('models/' .. opt.netType .. '.lua')
-   print('=> Creating model from file: models/' .. opt.netType .. '.lua')
+   local config = opt.netType .. '_' .. opt.backend
+   paths.dofile('models/' .. config .. '.lua')
+   print('=> Creating model from file: models/' .. config .. '.lua')
    model = createModel(opt.nGPU) -- for the model creation code, check the models/ folder
-   if opt.backend == 'cudnn' then
-      require 'cudnn'
-      cudnn.convert(model, cudnn)
-   elseif opt.backend ~= 'nn' then
-      error'Unsupported backend'
-   end
 end
 
 -- 2. Create Criterion
@@ -47,6 +42,6 @@ print(criterion)
 print('==> Converting model to CUDA')
 -- model is converted to CUDA in the init script itself
 -- model = model:cuda()
---criterion:cuda()
+criterion:cuda()
 
 collectgarbage()

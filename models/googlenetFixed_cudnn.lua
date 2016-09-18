@@ -7,13 +7,12 @@
 
 require 'cudnn'
 require 'cunn'
-require 'nn'
 
 -- Some shortcuts
-local SC  = nn.SpatialConvolution
-local SMP = nn.SpatialMaxPooling
-local RLU = nn.ReLU
-local SpatialAveragePooling = nn.SpatialAveragePooling
+local SC  = cudnn.SpatialConvolution
+local SMP = cudnn.SpatialMaxPooling
+local RLU = cudnn.ReLU
+local LRN = cudnn.SpatialCrossMapLRN
 
 -- Utility inc(eption) function ------------------------------------------------
 local function inc(input_size, config) -- inception
@@ -81,8 +80,10 @@ function createModel(nGPU)
    main0:add(fac()) -- 1
    --main0:add(SC(3, 64, 7, 7, 2, 2, 3, 3))
    main0:add(SMP(3, 3, 2, 2):ceil())
+   main0:add(LRN(5,0.0001,0.75))
    main0:add(SC(64, 64, 1, 1)):add(RLU(true)) -- 2
    main0:add(SC(64, 192, 3, 3, 1, 1, 1, 1)):add(RLU(true)) -- 3
+   main0:add(LRN(5,0.0001,0.75))
    main0:add(SMP(3,3,2,2):ceil())
    main0:add(inc(192, {{ 64}, { 96,128}, {16, 32}, {3, 32}})) -- 4,5 / 3(a)
    main0:add(inc(256, {{128}, {128,192}, {32, 96}, {3, 64}})) -- 6,7 / 3(b)
@@ -101,28 +102,28 @@ function createModel(nGPU)
    main2:add(inc(832, {{384}, {192,384}, {48,128}, {3,128}})) -- 20,21 / 5(b)
 
    local sftMx0 = nn.Sequential() -- softMax0
-   sftMx0:add(SpatialAveragePooling(5, 5, 3, 3))
+   sftMx0:add(cudnn.SpatialAveragePooling(5, 5, 3, 3))
    sftMx0:add(SC(512, 128, 1, 1)):add(RLU(true))
    sftMx0:add(nn.View(128*4*4):setNumInputDims(3))
    sftMx0:add(nn.Linear(128*4*4, 1024)):add(nn.ReLU())
    sftMx0:add(nn.Dropout(0.7))
-   sftMx0:add(nn.Linear(1024, nClasses)):add(nn.ReLU())
+   sftMx0:add(nn.Linear(1024, nClasses))
    sftMx0:add(nn.LogSoftMax())
 
    local sftMx1 = nn.Sequential() -- softMax1
-   sftMx1:add(SpatialAveragePooling(5, 5, 3, 3))
+   sftMx1:add(cudnn.SpatialAveragePooling(5, 5, 3, 3))
    sftMx1:add(SC(528, 128, 1, 1)):add(RLU(true))
    sftMx1:add(nn.View(128*4*4):setNumInputDims(3))
    sftMx1:add(nn.Linear(128*4*4, 1024)):add(nn.ReLU())
    sftMx1:add(nn.Dropout(0.7))
-   sftMx1:add(nn.Linear(1024, nClasses)):add(nn.ReLU())
+   sftMx1:add(nn.Linear(1024, nClasses))
    sftMx1:add(nn.LogSoftMax())
 
    local sftMx2 = nn.Sequential() -- softMax2
-   sftMx2:add(SpatialAveragePooling(7, 7, 1, 1))
+   sftMx2:add(cudnn.SpatialAveragePooling(7, 7, 1, 1))
    sftMx2:add(nn.View(1024):setNumInputDims(3))
    sftMx2:add(nn.Dropout(0.4))
-   sftMx2:add(nn.Linear(1024, nClasses)):add(nn.ReLU()) -- 22
+   sftMx2:add(nn.Linear(1024, nClasses))
    sftMx2:add(nn.LogSoftMax())
 
    -- Macro blocks -------------------------------------------------------------
@@ -150,7 +151,7 @@ function createModel(nGPU)
    local model = block0
 
    -- Play safe with GPUs ------------------------------------------------------
-   --model:cuda()
+   model:cuda()
    model = makeDataParallel(model, nGPU) -- defined in util.lua
    model.imageSize = 256
    model.imageCrop = 224
