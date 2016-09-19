@@ -10,16 +10,16 @@
 require 'nn'
 
 -- Some shortcuts
-local SC  = nn.SpatialConvolution
-local SMP = nn.SpatialMaxPooling
-local RLU = nn.ReLU
+local SC  = nn.SpatialConvolutionMKLDNN
+local SMP = nn.SpatialMaxPoolingMKLDNN
+local RLU = nn.ReLUMKLDNN
 local SpatialAveragePooling = nn.SpatialAveragePooling
-local SBatchNorm = nn.SpatialBatchNormalization
+local SBatchNorm = nn.SpatialBatchNormalizationMKLDNN
 local LRN = nn.LRNMKLDNN
 
 -- Utility inc(eption) function ------------------------------------------------
 local function inc(input_size, config) -- inception
-   local depthCat = nn.Concat(2) -- should be 1, 2 considering batches
+   local depthCat = nn.ConcatMKLDNN(2) -- should be 1, 2 considering batches
 
    local conv1 = nn.Sequential()
    conv1:add(SC(input_size, config[1][1], 1, 1)):add(RLU(true))
@@ -92,6 +92,8 @@ function createModel(nGPU)
    main0:add(inc(256, {{128}, {128,192}, {32, 96}, {3, 64}})) -- 6,7 / 3(b)
    main0:add(SMP(3, 3, 2, 2):ceil())
    main0:add(inc(480, {{192}, { 96,208}, {16, 48}, {3, 64}})) -- 8,9 / 4(a)
+
+   main0:get(1).gradInput = nil
 
    local main1 = nn.Sequential()
    main1:add(inc(512, {{160}, {112,224}, {24, 64}, {3, 64}})) -- 10,11 / 4(b)
