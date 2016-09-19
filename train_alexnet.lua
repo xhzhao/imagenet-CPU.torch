@@ -107,9 +107,11 @@ function train()
          -- the end callback (runs in the main thread)
          trainBatch
       )
+--[[
     if (i%1000) == 0 then
        test()
     end
+]]--
    end
 
    donkeys:synchronize()
@@ -237,6 +239,7 @@ function trainBatch(inputsCPU, labelsCPU)
    batchNumber = batchNumber + 1
    loss_epoch = loss_epoch + err
    -- top-1 error
+--[[
    local top1 = 0
    do
       local _,prediction_sorted = outputs:float():sort(2, true) -- descending
@@ -260,11 +263,11 @@ function trainBatch(inputsCPU, labelsCPU)
       end
       top5 = top5 * 100 / opt.batchSize;
    end
-
+]]--
 
    -- Calculate top-1 error, and print information
-   print(('Epoch: [%d][%d/%d]\tTime %.3f Err %.4f Top1-%%: %.2f Top5-%%: %.2f  LR %.0e DataLoadingTime %.3f'):format(
-          epoch, batchNumber, opt.epochSize, timer:time().real, err, top1,top5,
+   print(('Epoch: [%d][%d/%d]\tTime %.3f Err %.4f   LR %.0e DataLoadingTime %.3f'):format(
+          epoch, batchNumber, opt.epochSize, timer:time().real, err,
           optimState.learningRate, dataLoadingTime))
 
    dataTimer:reset()

@@ -19,7 +19,7 @@ require 'sys'
 
 
 --sys.compare = true
-sys.timerEnable = true
+--sys.timerEnable = true
 
 sys.totalTime = 0
 sys.convTime_forward = 0
@@ -77,6 +77,6 @@ epoch = opt.epochNumber
 
 for i=1,opt.nEpochs do
    train()
-   --test()
+   test()
    epoch = epoch + 1
 end
