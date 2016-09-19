@@ -157,14 +157,39 @@ function trainBatch(inputsCPU, labelsCPU)
    --inputs:resize(inputsCPU:size())
    --labels:resize(labelsCPU:size())
 
-   local err, outputs
+   local err, outputs, totalerr
    feval = function(x)
       model:zeroGradParameters()
+      --outputs = model:forward(inputs)
+      --err = criterion:forward(outputs, labels)
+      --local gradOutputs = criterion:backward(outputs, labels)
+      --model:backward(inputs, gradOutputs)
+      --return err, gradParameters
+
       outputs = model:forward(inputs)
-      err = criterion:forward(outputs, labels)
-      local gradOutputs = criterion:backward(outputs, labels)
+      local model_outputs = outputs:sub(1, -1, 1, nClasses)
+      err = criterion:forward(model_outputs, labels)
+      totalerr = err
+      local gradOutputs = criterion:backward(model_outputs, labels)
+
+      if model.auxClassifiers and model.auxClassifiers > 0 then
+         local allGradOutputs = torch.Tensor():typeAs(gradOutputs):resizeAs(outputs)
+         allGradOutputs:sub(1, -1, 1, nClasses):copy(gradOutputs)
+         auxerr = {}
+         for i=1,model.auxClassifiers do
+            local first = i * nClasses + 1
+            local last = (i+1) * nClasses
+            local classifier_outputs = outputs:sub(1, -1, first, last)
+            auxerr[i] = criterion:forward(classifier_outputs, labels)
+            totalerr = totalerr + auxerr[i] * model.auxWeights[i]
+            local auxGradOutput = criterion:backward(classifier_outputs, labels) * model.auxWeights[i]
+            allGradOutputs:sub(1, -1, first, last):copy(auxGradOutput)
+         end
+         gradOutputs = allGradOutputs
+      end
       model:backward(inputs, gradOutputs)
-      return err, gradParameters
+      return totalerr, gradParameters
+
    end
    --adamState = {learningRate = 0.001}
    --optim.adam(feval, parameters, adamState)
@@ -261,7 +286,7 @@ function trainBatch(inputsCPU, labelsCPU)
 
    -- Calculate top-1 error, and print information
    print(('Epoch: [%d][%d/%d]\tTime %.3f Err %.4f  LR %.0e DataLoadingTime %.3f'):format(
-          epoch, batchNumber, opt.epochSize, timer:time().real, err,
+          epoch, batchNumber, opt.epochSize, timer:time().real, totalerr,
           optimState.learningRate, dataLoadingTime))
 
    dataTimer:reset()
