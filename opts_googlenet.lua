@@ -23,7 +23,7 @@ function M.parse(arg)
     cmd:option('-nGPU',               1, 'Number of GPUs to use by default')
     cmd:option('-backend',     'nn', 'Options: cudnn | nn')
     ------------- Data options ------------------------
-    cmd:option('-nDonkeys',        4, 'number of donkeys to initialize (data loading threads)')
+    cmd:option('-nDonkeys',        0, 'number of donkeys to initialize (data loading threads)')
     cmd:option('-imageSize',         256,    'Smallest side of the resized image')
     cmd:option('-cropSize',          224,    'Height and Width of image crop to be used as input layer')
     cmd:option('-nClasses',        1000, 'number of classes in the dataset')
@@ -35,7 +35,7 @@ function M.parse(arg)
     ---------- Optimization options ----------------------
     cmd:option('-LR',    0.0, 'learning rate; if set, overrides default LR/WD recipe')
     cmd:option('-momentum',        0.9,  'momentum')
-    cmd:option('-weightDecay',     5e-4, 'weight decay')
+    cmd:option('-weightDecay',     2e-4, 'weight decay')
     ---------- Model options ----------------------------------
     --cmd:option('-netType',     'alexnet_mkldnn', 'Options: alexnet | overfeat | alexnetowtbn | vgg | googlenet')
     --cmd:option('-netType',     'alexnetowtbn', 'Options: alexnet | overfeat | alexnetowtbn | vgg | googlenet')
