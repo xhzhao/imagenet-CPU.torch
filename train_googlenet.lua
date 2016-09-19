@@ -107,9 +107,6 @@ function train()
          -- the end callback (runs in the main thread)
          trainBatch
       )
-    if (i%1000) == 0 then
-       test()
-    end
    end
 
    donkeys:synchronize()
@@ -178,11 +175,64 @@ function trainBatch(inputsCPU, labelsCPU)
    if model.needsSync then
       model:syncParameters()
    end
-   
+  
+   if sys and sys.timerEnable then
+        print("sys.totalTime =          ",sys.totalTime)
+        print("sys.convTime_forward =           ",sys.convTime_forward)
+        print("sys.convTime_backward =          ",sys.convTime_backward)
+        print("sys.maxpoolingTime_forward =     ",sys.maxpoolingTime_forward)
+        print("sys.maxpoolingTime_backward =    ",sys.maxpoolingTime_backward)
+        print("sys.avgpoolingTime_forward =     ",sys.avgpoolingTime_forward)
+        print("sys.avgpoolingTime_backward =    ",sys.avgpoolingTime_backward)
+        print("sys.reluTime_forward =           ",sys.reluTime_forward)
+        print("sys.reluTime_backward =          ",sys.reluTime_backward)
+        print("sys.lrnTime_forward =            ",sys.lrnTime_forward)
+        print("sys.lrnTime_backward =           ",sys.lrnTime_backward)
+        print("sys.sbnTime_forward =            ",sys.sbnTime_forward)
+        print("sys.sbnTime_backward =           ",sys.sbnTime_backward)
+        print("sys.linearTime_forward = ",      sys.linearTime_forward)
+        print("sys.linearTime_backward =        ",      sys.linearTime_backward)
+        print("sys.dropTime_forward=            ",sys.dropTime_forward)
+        print("sys.dropTime_backward=           ",sys.dropTime_backward)
+        print("sys.concatTableTime_forward=             ",sys.concatTableTime_forward)
+        print("sys.concatTableTime_backward=            ",sys.concatTableTime_backward)
+        print("sys.concatTime_forward =         ",sys.concatTime_forward)
+        print("sys.concatTime_backward=         ",sys.concatTime_backward)
+        print("sys.thresholdTime_forward =      ",sys.thresholdTime_forward)
+        print("sys.thresholdTime_backward =      ",sys.thresholdTime_backward)
+        print("sum =                    ",sys.convTime_forward+sys.convTime_backward+sys.maxpoolingTime_forward+sys.maxpoolingTime_backward+sys.avgpoolingTime_forward+sys.avgpoolingTime_backward+sys.reluTime_forward+sys.reluTime_backward+sys.sbnTime_forward+sys.sbnTime_backward+sys.linearTime_forward+sys.linearTime_backward+sys.dropTime_forward+sys.dropTime_backward+sys.concatTime_forward+sys.concatTime_backward+sys.concatTableTime_forward+sys.concatTableTime_backward+sys.thresholdTime_forward+sys.thresholdTime_backward+sys.lrnTime_forward+sys.lrnTime_backward)
+        print("------")
+
+        sys.convTime_forward = 0
+        sys.convTime_backward = 0
+        sys.maxpoolingTime_forward = 0
+        sys.maxpoolingTime_backward = 0
+        sys.avgpoolingTime_forward = 0
+        sys.avgpoolingTime_backward = 0
+        sys.reluTime_forward = 0
+        sys.reluTime_backward = 0
+        sys.lrnTime_forward = 0
+        sys.lrnTime_backward = 0
+        sys.sbnTime_forward = 0
+        sys.sbnTime_backward = 0
+        sys.linearTime_forward = 0
+        sys.linearTime_backward = 0
+        sys.dropTime_forward = 0
+        sys.dropTime_backward = 0
+        sys.concatTableTime_forward = 0
+        sys.concatTableTime_backward = 0
+        sys.concatTime_forward = 0
+        sys.concatTime_backward = 0
+        sys.thresholdTime_forward = 0
+        sys.thresholdTime_backward = 0
+   end
+
+ 
 
 --   cutorch.synchronize()
    batchNumber = batchNumber + 1
    loss_epoch = loss_epoch + err
+--[[
    -- top-1 error
    local top1 = 0
    do
@@ -207,11 +257,11 @@ function trainBatch(inputsCPU, labelsCPU)
       end
       top5 = top5 * 100 / opt.batchSize;
    end
-
+]]--
 
    -- Calculate top-1 error, and print information
-   print(('Epoch: [%d][%d/%d]\tTime %.3f Err %.4f Top1-%%: %.2f Top5-%%: %.2f  LR %.0e DataLoadingTime %.3f'):format(
-          epoch, batchNumber, opt.epochSize, timer:time().real, err, top1,top5,
+   print(('Epoch: [%d][%d/%d]\tTime %.3f Err %.4f  LR %.0e DataLoadingTime %.3f'):format(
+          epoch, batchNumber, opt.epochSize, timer:time().real, err,
           optimState.learningRate, dataLoadingTime))
 
    dataTimer:reset()
