@@ -180,7 +180,7 @@ function trainBatch(inputsCPU, labelsCPU)
    if model.needsSync then
       model:syncParameters()
    end
-
+   sys.initOk = 1
    if sys and sys.timerEnable then
         print("sys.totalTime =          ",sys.totalTime)
         print("sys.convTime_forward =           ",sys.convTime_forward)
