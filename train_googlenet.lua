@@ -21,8 +21,8 @@ local optimState = {
     learningRate = opt.LR,
     learningRateDecay = 0.0,
     momentum = opt.momentum,
-    dampening = 0.0,
-    weightDecay = opt.weightDecay
+    --dampening = 0.0,
+    --weightDecay = opt.weightDecay
 }
 
 if opt.optimState ~= 'none' then
@@ -48,11 +48,13 @@ local function paramsForEpoch(epoch)
     end
     local regimes = {
         -- start, end,    LR,   WD,
-        {  1,     18,   1e-2,   5e-4, },
-        { 19,     29,   5e-3,   5e-4  },
-        { 30,     43,   1e-3,   0 },
-        { 44,     52,   5e-4,   0 },
-        { 53,    1e8,   1e-4,   0 },
+        {  1,      8,    1e-2,     2e-4  },
+        {  9,     16,   1e-2*0.96,   2e-4, },
+          { 17,    24,   1e-2*0.96*0.96,  2e-4},
+        { 25,     32,   1e-2*0.96*0.96*0.96,   2e-4  },
+        { 33,     40,   1e-2*0.96*0.96*0.96*0.96,   2e-4 },
+        { 41,     48,   1e-2*0.96*0.96*0.96*0.96*0.96,   2e-4 },
+        { 49,    1e8,   1e-4,   0 },
     }
 
     for _, row in ipairs(regimes) do
@@ -76,14 +78,32 @@ function train()
    print("==> online epoch # " .. epoch)
 
    local params, newRegime = paramsForEpoch(epoch)
+   local baseLR = params.learningRate
+   local baseWD = params.weightDecay
+   local LRs, WDs = model:getOptimConfig(1, baseWD)
+
+
+
    if newRegime then
-      optimState = {
-         learningRate = params.learningRate,
-         learningRateDecay = 0.0,
-         momentum = opt.momentum,
-         dampening = 0.0,
-         weightDecay = params.weightDecay
-      }
+        local bUseNNlr = true
+        if bUseNNlr then
+                optimState = {
+                         learningRate = baseLR,
+                         learningRateDecay = 0.0,
+                         momentum = opt.momentum,
+                         weightDecays = WDs,
+                         learningRates = LRs,
+                        }
+        else
+                optimState = {
+                         learningRate = baseLR,
+                         learningRateDecay = 0.0,
+                         momentum = opt.momentum,
+                         dampening = 0.0,
+                         weightDecay = baseWD,
+                        }
+        end
+
    end
    batchNumber = 0
  --  cutorch.synchronize()

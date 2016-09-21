@@ -43,7 +43,7 @@ function M.parse(arg)
     --cmd:option('-netType',     'vgg', 'Options: alexnet | overfeat | alexnetowtbn | vgg | googlenet')
     --cmd:option('-netType',     'resnet', 'Options: alexnet | overfeat | alexnetowtbn | vgg | googlenet')
     -- cmd:option('-netType',     'resnet_mkldnn', 'Options: alexnet | overfeat | alexnetowtbn | vgg | googlenet')
-    cmd:option('-netType',     'googlenet_mkldnn', 'Options: alexnet | overfeat | alexnetowtbn | vgg | googlenet')
+    cmd:option('-netType',     'zpGoogle_mkldnn', 'Options: alexnet | overfeat | alexnetowtbn | vgg | googlenet')
     --cmd:option('-netType',     'googlenet', 'Options: alexnet | overfeat | alexnetowtbn | vgg | googlenet')
 
     cmd:option('-retrain',     'none', 'provide path to model to retrain with')
