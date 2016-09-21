@@ -29,7 +29,8 @@ local sampleSize = {3, opt.cropSize, opt.cropSize}
 
 
 local function loadImage(path)
-   local input = image.load(path, 3, 'float')
+   --local input = image.load(path, 3, 'float')
+   local input = image.load(path, 3, 'byte')
    -- find the smaller dimension, and resize it to loadSize (while keeping aspect ratio)
    if input:size(3) < input:size(2) then
       input = image.scale(input, loadSize[2], loadSize[3] * input:size(2) / input:size(3))
@@ -67,7 +68,7 @@ local trainHook = function(self, path)
    -- mean/std
    for i=1,3 do -- channels
       if mean then out[{{i},{},{}}]:add(-mean[i]) end
-      if std then out[{{i},{},{}}]:div(std[i]) end
+      --if std then out[{{i},{},{}}]:div(std[i]) end
    end
    return out
 end
@@ -123,7 +124,7 @@ testHook = function(self, path)
    -- mean/std
    for i=1,3 do -- channels
       if mean then out[{{i},{},{}}]:add(-mean[i]) end
-      if std then out[{{i},{},{}}]:div(std[i]) end
+      --if std then out[{{i},{},{}}]:div(std[i]) end
    end
    return out
 end

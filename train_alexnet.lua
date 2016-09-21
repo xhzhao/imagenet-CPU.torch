@@ -22,7 +22,7 @@ local optimState = {
     learningRateDecay = 0.0,
     momentum = opt.momentum,
     dampening = 0.0,
-    weightDecay = opt.weightDecay
+    --weightDecay = opt.weightDecay
 }
 
 if opt.optimState ~= 'none' then
@@ -75,6 +75,15 @@ function train()
    print('==> doing epoch on training data:')
    print("==> online epoch # " .. epoch)
 
+   --TRICK  - optim input requirements
+   --   --   lr  - base learning rate
+   --      --   lrs - learning rate scale
+   --         --   wd  - skip if wds provided
+   --            --   wds - base weight decay * scale
+   --
+
+   local lrs, wds = model:getOptimConfig(1, opt.weightDecay)
+
    local params, newRegime = paramsForEpoch(epoch)
    if newRegime then
       optimState = {
@@ -82,7 +91,9 @@ function train()
          learningRateDecay = 0.0,
          momentum = opt.momentum,
          dampening = 0.0,
-         weightDecay = params.weightDecay
+         --weightDecay = params.weightDecay  --should be skipped
+         learningRates = lrs,
+         weightDecays = wds
       }
    end
    batchNumber = 0
