@@ -30,7 +30,7 @@ local sampleSize = {3, opt.cropSize, opt.cropSize}
 
 local function loadImage(path)
    --local input = image.load(path, 3, 'float')
-   local input = image.load(path, 3, 'byte')
+   local input = image.load(path, 3, 'byte'):type('torch.FloatTensor')
    -- find the smaller dimension, and resize it to loadSize (while keeping aspect ratio)
    if input:size(3) < input:size(2) then
       input = image.scale(input, loadSize[2], loadSize[3] * input:size(2) / input:size(3))
