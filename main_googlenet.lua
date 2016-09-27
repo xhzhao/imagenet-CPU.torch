@@ -41,6 +41,8 @@ sys.concatTime_forward = 0
 sys.concatTime_backward = 0
 sys.thresholdTime_forward = 0
 sys.thresholdTime_backward = 0
+sys.logsoftmaxTime_forward = 0
+sys.logsoftmaxTime_backward = 0
 
 
 torch.setdefaulttensortype('torch.FloatTensor')

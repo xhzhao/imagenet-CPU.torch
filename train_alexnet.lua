@@ -216,7 +216,9 @@ function trainBatch(inputsCPU, labelsCPU)
         print("sys.concatTime_backward=         ",sys.concatTime_backward)
         print("sys.thresholdTime_forward =      ",sys.thresholdTime_forward)
         print("sys.thresholdTime_backward =      ",sys.thresholdTime_backward)
-        print("sum =                    ",sys.convTime_forward+sys.convTime_backward+sys.maxpoolingTime_forward+sys.maxpoolingTime_backward+sys.avgpoolingTime_forward+sys.avgpoolingTime_backward+sys.reluTime_forward+sys.reluTime_backward+sys.sbnTime_forward+sys.sbnTime_backward+sys.linearTime_forward+sys.linearTime_backward+sys.dropTime_forward+sys.dropTime_backward+sys.concatTime_forward+sys.concatTime_backward+sys.concatTableTime_forward+sys.concatTableTime_backward+sys.thresholdTime_forward+sys.thresholdTime_backward+sys.lrnTime_forward+sys.lrnTime_backward)
+        print("sys.logsoftmaxTime_forward =      ",sys.logsoftmaxTime_forward)
+        print("sys.logsoftmaxTime_backward =      ",sys.logsoftmaxTime_backward)
+        print("sum =                    ",sys.convTime_forward+sys.convTime_backward+sys.maxpoolingTime_forward+sys.maxpoolingTime_backward+sys.avgpoolingTime_forward+sys.avgpoolingTime_backward+sys.reluTime_forward+sys.reluTime_backward+sys.sbnTime_forward+sys.sbnTime_backward+sys.linearTime_forward+sys.linearTime_backward+sys.dropTime_forward+sys.dropTime_backward+sys.concatTime_forward+sys.concatTime_backward+sys.concatTableTime_forward+sys.concatTableTime_backward+sys.thresholdTime_forward+sys.thresholdTime_backward+sys.lrnTime_forward+sys.lrnTime_backward+sys.logsoftmaxTime_forward+sys.logsoftmaxTime_backward)
         print("------")
 
         sys.convTime_forward = 0
@@ -241,6 +243,8 @@ function trainBatch(inputsCPU, labelsCPU)
         sys.concatTime_backward = 0
         sys.thresholdTime_forward = 0
         sys.thresholdTime_backward = 0
+	sys.logsoftmaxTime_forward = 0
+        sys.logsoftmaxTime_backward = 0
    end
 
 
