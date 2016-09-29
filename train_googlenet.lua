@@ -7,6 +7,7 @@
 --  of patent rights can be found in the PATENTS file in the same directory.
 --
 require 'optim'
+require 'nnlr'
 
 --[[
    1. Setup SGD optimization state and learning rate schedule
@@ -135,6 +136,12 @@ function train()
 
    -- set the dropouts to training mode
    model:training()
+   model.imageSize = 256
+   model.imageCrop = 224
+   model.auxClassifiers = 2
+   model.auxWeights = {0.3, 0.3}
+
+
 
    local tm = torch.Timer()
    top1_epoch = 0
@@ -244,7 +251,8 @@ function trainBatch(inputsCPU, labelsCPU)
    if model.needsSync then
       model:syncParameters()
    end
-  
+   sys.initOk = 1
+ 
    if sys and sys.timerEnable then
         print("sys.totalTime =          ",sys.totalTime)
         print("sys.convTime_forward =           ",sys.convTime_forward)

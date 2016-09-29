@@ -16,6 +16,7 @@ require 'sys'
 
 --sys.compare = true
 --sys.timerEnable = true
+sys.initOk = 0
 
 sys.totalTime = 0
 sys.convTime_forward = 0
