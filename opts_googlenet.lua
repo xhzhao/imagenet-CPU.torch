@@ -28,7 +28,7 @@ function M.parse(arg)
     cmd:option('-cropSize',          224,    'Height and Width of image crop to be used as input layer')
     cmd:option('-nClasses',        1000, 'number of classes in the dataset')
     ------------- Training options --------------------
-    cmd:option('-nEpochs',         55,    'Number of total epochs to run')
+    cmd:option('-nEpochs',         250,    'Number of total epochs to run')
     cmd:option('-epochSize',       40000, 'Number of batches per epoch')
     cmd:option('-epochNumber',     1,     'Manual epoch number (useful on restarts)')
     cmd:option('-batchSize',       32,   'mini-batch size (1 = pure stochastic)')
