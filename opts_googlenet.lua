@@ -48,6 +48,7 @@ function M.parse(arg)
 
     cmd:option('-retrain',     'none', 'provide path to model to retrain with')
     cmd:option('-optimState',  'none', 'provide path to an optimState to reload from')
+    cmd:option('-lmdb',  1,  'select the dataset format, 0 -- jpeg, 1 -- lmdb')
     cmd:text()
 
     local opt = cmd:parse(arg or {})
