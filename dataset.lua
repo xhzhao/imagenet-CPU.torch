@@ -13,6 +13,7 @@ require 'image'
 require 'lmdb'
 local DataProvider = require 'DataProvider'
 local config = require 'Config'
+config.InputSize = {3,224,224}
 
 local db= lmdb.env{
     Path = config.TRAINING_DIR,
@@ -21,6 +22,7 @@ local db= lmdb.env{
 
 
 function ExtractFromLMDBTrain(data)
+    --print("ExtractFromLMDBTrain start")
     require 'image'
     local reSample = function(sampledImg)
         local sizeImg = sampledImg:size()
@@ -58,13 +60,13 @@ function ExtractFromLMDBTrain(data)
     end
     local startX = math.random(img:size(3)-config.InputSize[3]+1)
     local startY = math.random(img:size(2)-config.InputSize[2]+1)
-
     img = img:narrow(3,startX,config.InputSize[3]):narrow(2,startY,config.InputSize[2])
     local hflip = torch.random(2)==1
     if hflip then
         img = image.hflip(img)
     end
 
+    --print("ExtractFromLMDBTrain end")
     return img, class
 end
 
@@ -73,7 +75,7 @@ local TrainDB = DataProvider.LMDBProvider{
     Source = lmdb.env({Path = config.TRAINING_DIR, RDONLY = true}),
     ExtractFunction = ExtractFromLMDBTrain
 }
-
+TrainDB:threads(1)
 
 local dataset = torch.class('dataLoader')
 
@@ -90,7 +92,7 @@ function dataset:getByClassLMDB(class)
    print("get data ok,data:size() = ", out:size())
 
    ]]--
-   trainDB:asyncCacheSeq(config.Key(dataIndices[currBatch]), sizeBuffer, BufferSources[currBuffer].Data, BufferSources[currBuffer].Labels)
+   TrainDB:asyncCacheSeq(config.Key(dataIndices[currBatch]), sizeBuffer, BufferSources[currBuffer].Data, BufferSources[currBuffer].Labels)
    return
 end
 
@@ -411,23 +413,32 @@ function dataset:sample(quantity)
    print("dataset:sample() called, opt.lmdb = ", opt.lmdb)
    local dataTable = {}
    local scalarTable = {}
-   for i=1,quantity do
-      local class = torch.random(1, #self.classes)
-      local out
-      if opt.lmdb == 0 then
-         out = self:getByClass(class)
-         print(out:size())
-      else
-         out = torch.Tensor(3,opt.cropSize,opt.cropSize)
-         print(out:size())
-         --self:getByClassLMDB(class)
-      end
 
-      table.insert(dataTable, out)
-      table.insert(scalarTable, class)
-   end
-   local data, scalarLabels = tableToOutput(self, dataTable, scalarTable)
-   return data, scalarLabels
+   if opt.lmdb == 0 then
+      for i=1,quantity do
+         local class = torch.random(1, #self.classes)
+         local out = self:getByClass(class)
+         table.insert(dataTable, out)
+         table.insert(scalarTable, class)
+      end
+      local data, scalarLabels = tableToOutput(self, dataTable, scalarTable)
+      return data, scalarLabels
+   
+   else
+      --read data from lmdb 
+      print("read batch data from lmdb")
+      sys.tic()
+      local data = torch.Tensor(quantity,3,opt.cropSize,opt.cropSize)
+      local scalarLabels = torch.range(1,quantity,1):long()
+      TrainDB:asyncCacheSeq(config.Key(1), quantity, data, scalarLabels)
+      --TrainDB:synchronize()
+      print("read batch end, time = ",sys.toc())      
+--print(scalarLabels)
+
+
+
+      return data, scalarLabels
+   end --endif opt.lmdb == 0
 end
 
 function dataset:get(i1, i2)
