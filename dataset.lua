@@ -407,8 +407,9 @@ local function tableToOutput(self, dataTable, scalarTable)
    return data, scalarLabels
 end
 
+--local startIndex = 1
 -- sampler, samples from the training set.
-function dataset:sample(quantity)
+function dataset:sample(quantity,startIndex)
    assert(quantity)
    print("dataset:sample() called, opt.lmdb = ", opt.lmdb)
    local dataTable = {}
@@ -426,13 +427,15 @@ function dataset:sample(quantity)
    
    else
       --read data from lmdb 
-      print("read batch data from lmdb")
-      sys.tic()
+      print("read batch data from lmdb, startIndex = ",startIndex)
+      --sys.tic()
       local data = torch.Tensor(quantity,3,opt.cropSize,opt.cropSize)
-      local scalarLabels = torch.range(1,quantity,1):long()
-      TrainDB:asyncCacheSeq(config.Key(1), quantity, data, scalarLabels)
-      --TrainDB:synchronize()
-      print("read batch end, time = ",sys.toc())      
+      --local scalarLabels = torch.range(1,quantity,1):long()
+      local scalarLabels = torch.LongTensor(quantity)
+      TrainDB:asyncCacheSeq(config.Key(startIndex), quantity, data, scalarLabels)
+      TrainDB:synchronize()
+      --startIndex = startIndex + quantity
+      --print("read batch end, time = ",sys.toc())      
 --print(scalarLabels)
 
 

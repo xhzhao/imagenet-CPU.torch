@@ -148,17 +148,19 @@ function train()
    top5_epoch = 0
    loss_epoch = 0
    showErrorRateInteval = 100
+   startIndex = 1
    for i=1,opt.epochSize do
       -- queue jobs to data-workers
       donkeys:addjob(
          -- the job callback (runs in data-worker thread)
          function()
-            local inputs, labels = trainLoader:sample(opt.batchSize)
+            local inputs, labels = trainLoader:sample(opt.batchSize, startIndex)
             return inputs, labels
          end,
          -- the end callback (runs in the main thread)
          trainBatch
       )
+      startIndex = startIndex + opt.batchSize
    end
 
    donkeys:synchronize()
