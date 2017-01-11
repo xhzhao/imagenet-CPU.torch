@@ -46,6 +46,8 @@ By default, the script runs 1-CPU AlexNet with the NN backend and 2 data-loader 
 th main.lua -data [imagenet-folder with train and val folders]
 ```
 
+You can use the run_alexnet.sh to train the alexnet, and run_googlenet.sh to train googlent, while the -data should be set to you imagenet dataset path.
+
 You can also alternatively train OverFeat using this following command:
 ```bash
 th main.lua -data [imagenet-folder with train and val folders] -netType overfeat
